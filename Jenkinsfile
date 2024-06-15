@@ -38,6 +38,18 @@ pipeline {
                 """
             }
         }
+        stage('Sonar Scan'){
+            environment {
+                scannerHome = tool 'sonar-6.0' //refferring scanner cli
+            }
+            steps {
+                script {
+                    withSonarQubeEnv('sonar-6.0') {  //refferring scanner server
+                        sh "${scannerHome}/bin/sonar-scanner" 
+                    }
+                }
+            }
+        }
           stage('Nexus Artifact Upload'){
             steps{
                 script{
