@@ -38,49 +38,56 @@ pipeline {
                 """
             }
         }
-        stage('Sonar Scan'){
-            environment {
-                scannerHome = tool 'sonar-6.0' //refferring scanner cli
-            }
-            steps {
-                script {
-                    withSonarQubeEnv('sonar-6.0') {  //refferring scanner server
-                        sh "${scannerHome}/bin/sonar-scanner" 
-                    }
-                }
-            }
-        }
-          stage('Nexus Artifact Upload'){
+        stage('Docker build'){
             steps{
-                script{
-                    nexusArtifactUploader(
-                        nexusVersion: 'nexus3',
-                        protocol: 'http',
-                        nexusUrl: "${nexusUrl}",
-                        groupId: 'com.expense',
-                        version: "${appVersion}",
-                        repository: "backend",
-                        credentialsId: 'nexus-auth',
-                        artifacts: [
-                            [artifactId: "backend" ,
-                            classifier: '',
-                            file: "backend-" + "${appVersion}" + '.zip',
-                            type: 'zip']
-                        ]
-                    )
-                }
+                sh """
+                    docker build -t backend:${appVersion} .
+                """
             }
         }
-         stage('Deploy'){
-            steps{
-                script{
-                    def params = [
-                        string(name: 'appVersion', value: "${appVersion}")
-                    ]
-                    build job: 'backend-deploy', parameters: params, wait: false
-                }
-            }
-        }
+        // stage('Sonar Scan'){
+        //     environment {
+        //         scannerHome = tool 'sonar-6.0' //refferring scanner cli
+        //     }
+        //     steps {
+        //         script {
+        //             withSonarQubeEnv('sonar-6.0') {  //refferring scanner server
+        //                 sh "${scannerHome}/bin/sonar-scanner" 
+        //             }
+        //         }
+        //     }
+        // }
+        //   stage('Nexus Artifact Upload'){
+        //     steps{
+        //         script{
+        //             nexusArtifactUploader(
+        //                 nexusVersion: 'nexus3',
+        //                 protocol: 'http',
+        //                 nexusUrl: "${nexusUrl}",
+        //                 groupId: 'com.expense',
+        //                 version: "${appVersion}",
+        //                 repository: "backend",
+        //                 credentialsId: 'nexus-auth',
+        //                 artifacts: [
+        //                     [artifactId: "backend" ,
+        //                     classifier: '',
+        //                     file: "backend-" + "${appVersion}" + '.zip',
+        //                     type: 'zip']
+        //                 ]
+        //             )
+        //         }
+        //     }
+        // }
+        //  stage('Deploy'){
+        //     steps{
+        //         script{
+        //             def params = [
+        //                 string(name: 'appVersion', value: "${appVersion}")
+        //             ]
+        //             build job: 'backend-deploy', parameters: params, wait: false
+        //         }
+        //     }
+        // }
     }
      post { 
         always { 
